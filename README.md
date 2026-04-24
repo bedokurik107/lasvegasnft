@@ -533,3 +533,10 @@
 </script>
 </body>
 </html>
+{
+    "url": "https://bedokurik107.github.io/lasvegasnft",
+    "name": "NFT Gift Box",
+    "iconUrl": "https://bedokurik107.github.io/lasvegasnft/icon.png",
+    "termsOfUseUrl": "https://bedokurik107.github.io/lasvegasnft/terms",
+    "privacyPolicyUrl": "https://bedokurik107.github.io/lasvegasnft/privacy"
+}
